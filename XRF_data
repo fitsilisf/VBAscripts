@@ -1,0 +1,174 @@
+Sub xrftest()
+# xrftest Makro
+# Makro am 08.09.99 von fitsilis aufgezeichnet
+# Tastenkombination: Strg+q
+# -----------------------------------------
+# Create new data sheets
+Dim rowindex As Integer
+Dim Name As String
+Dim cellformatindex As Integer
+Sheets("Template").Select
+looping: Sheets.Add
+Name = InputBox("Sheet name:", "create sheet")
+ActiveSheet.Name = Name
+Sheets("Template").Select
+Range("A1:T74").Select
+Selection.Copy
+Sheets(Name).Select
+ActiveSheet.Paste
+Range("D66").Select
+ActiveCell.FormulaR1C1 = "Sr-" + Name
+Range("D67").Select
+ActiveCell.FormulaR1C1 = "Ba-" + Name
+Range("D68").Select
+ActiveCell.FormulaR1C1 = "Ti-" + Name
+Range("A74:T74").Select ' from Data set sheet
+Application.CutCopyMode = False
+Selection.Copy
+Sheets("Stoichiometrie").Select
+Range("B" & Name + 2).Select
+ActiveSheet.Paste Link:=True
+Cells(2 + Name, 1).Select
+# ---------------------------------------------
+# Format cells
+ActiveCell.FormulaR1C1 = Name
+With Selection.Interior
+.ColorIndex = 4
+End With
+With Selection
+.HorizontalAlignment = xlCenter
+End With
+Range("B" & Name + 2, "U" & Name + 2).Select
+For cellformatindex = 7 To 11
+With Selection.Borders(cellformatindex) '7
+.LineStyle = xlDot
+.Weight = xlThin
+.ColorIndex = xlAutomatic
+End With
+Next
+With Selection
+.HorizontalAlignment = xlCenter
+End With
+Sheets(Name).Select
+Range("A1").Select
+Dim repeat As Integer
+repeat = MsgBox("Create new Sheet?", vbYesNo)
+If repeat = vbYes Then
+GoTo looping
+End If
+End Sub
+
+Sub choose()
+# Makro am 08.09.99 von fitsilis aufgezeichnet
+Dim sheetname As String
+Dim setname As String
+Dim rowindex As Integer
+Dim Namenarray(6) As String
+Dim Namenarrayindex As Integer
+rowindex = 1
+Namenarrayindex = 0
+Sheets.Add
+ActiveSheet.Name = "New diagram sheet"
+Range("A1").Select
+ActiveCell.FormulaR1C1 = "Diagram"
+Range("B1").Select
+ActiveCell.FormulaR1C1 = "NI"
+Range("C1").Select
+ActiveCell.FormulaR1C1 = "NM"
+Range("D1").Select
+ActiveCell.FormulaR1C1 = "NA"
+Range("A1").Select
+loop1:
+While ActiveCell.FormulaR1C1 <> ""
+Cells(rowindex + 1, 1).Select
+rowindex = rowindex + 1
+Wend
+setname = InputBox("Setname:", "choose data set")
+Namenarrayindex = Namenarrayindex + 1
+Namenarray(Namenarrayindex) = setname
+Sheets(setname).Select
+Range("D66:G68").Select
+Selection.Copy
+Sheets("New diagram sheet").Select
+Selection.PasteSpecial Paste:=xlValues, Operation:=xlNone, SkipBlanks:= _
+False, Transpose:=False
+Dim repeat As Integer
+repeat = MsgBox("Continue?", vbYesNo)
+If repeat = vbYes Then
+GoTo loop1
+End If
+For Count = 1 To Namenarrayindex
+sheetname = sheetname + Namenarray(Count) + " "
+Next
+ActiveSheet.Name = "Diagram " + sheetname
+# -------------------------------------------------
+# Diagram erstellen
+Charts.Add
+ActiveChart.ChartType = xlLineMarkers
+ActiveChart.SetSourceData Source:=Sheets("Diagram " + sheetname).Range("A1", "D" & rowindex + 2
+) _
+, PlotBy:=xlRows
+ActiveChart.Location Where:=xlLocationAsObject, Name:="Diagram " + sheetname
+With ActiveChart
+.HasTitle = True
+.ChartTitle.Characters.Text = sheetname
+.Axes(xlCategory, xlPrimary).HasTitle = True
+Modul1 - 3
+.Axes(xlCategory, xlPrimary).AxisTitle.Characters.Text = "position"
+.Axes(xlValue, xlPrimary).HasTitle = True
+.Axes(xlValue, xlPrimary).AxisTitle.Characters.Text = "efficiency"
+End With
+ActiveWindow.Visible = True
+# --------------------------------------------------
+# Diagram Formatieren
+Dim farbe(3) As Integer
+farbe(1) = 3
+farbe(2) = 5
+farbe(3) = 6
+Dim Objektstyle(6) As Integer
+Objektstyle(1) = 3 '"triangle"
+Objektstyle(2) = 8 '"circle"
+Objektstyle(3) = 1 '"square"
+Objektstyle(4) = 2 '"diamond"
+Objektstyle(5) = 7 '"dash"
+Objektstyle(6) = 9
+Dim series As Integer
+series = 1
+Dim farbeArrayIndex As Integer
+Dim ObjektststyleIndex As Integer
+For ObjektststyleIndex = 1 To 6
+For farbeArrayIndex = 1 To 3
+If series = rowindex + 2 Then GoTo Enden
+ActiveChart.SeriesCollection(series).Select
+With Selection.Border
+.ColorIndex = farbe(farbeArrayIndex)
+.Weight = xlThin
+.LineStyle = xlContinuous
+End With
+With Selection
+.MarkerBackgroundColorIndex = farbe(farbeArrayIndex)
+.MarkerForegroundColorIndex = farbe(farbeArrayIndex)
+.MarkerStyle = Objektstyle(ObjektststyleIndex)
+.Smooth = False
+.MarkerSize = 7
+.Shadow = False
+End With
+series = series + 1
+Next
+Next
+Enden:
+End Sub
+Sub Diagram()
+
+# Diagram Makro
+# Makro am 09.09.99 von fitsilis aufgezeichnet
+#  Tastenkombination: Strg+w
+Dim repeat As Integer
+choose
+ActiveWorkbook.Save
+repeat = MsgBox("Continue?", vbYesNo)
+If repeat = vbYes Then
+Diagram
+End If
+Sheets("Bedienung-Credits").Select
+End Sub
